@@ -2,6 +2,6 @@
 
 return [
     'events' => [
-        'example' => \Cellard\Throttle\ExampleThrottleService::class
+        'example' => \Cellard\Throttle\Example\ExampleThrottleService::class
     ]
 ];

@@ -25,7 +25,7 @@ try {
 
     // Do what you need
 
-} catch (\Cellard\Throttle\ThrottlingException $exception) {
+} catch (\Cellard\Throttle\Exceptions\ThrottlingException $exception) {
     $exception->getMessage();
     $exception->getNext();
 }

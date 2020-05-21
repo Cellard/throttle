@@ -1,8 +1,10 @@
 <?php
 
 
-namespace Cellard\Throttle;
+namespace Cellard\Throttle\Example;
 
+
+use Cellard\Throttle\ThrottleService;
 
 class ExampleThrottleService extends ThrottleService
 {

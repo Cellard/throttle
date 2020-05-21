@@ -3,8 +3,7 @@
 
 namespace Cellard\Throttle;
 
-
-use Carbon\CarbonInterval;
+use Cellard\Throttle\Exceptions\ThrottlingException;
 use Illuminate\Support\Carbon;
 
 abstract class ThrottleService
@@ -47,7 +46,7 @@ abstract class ThrottleService
      *
      * @return array
      */
-    abstract protected function rules();
+    abstract public function rules();
 
     /**
      * Custom error messages
@@ -56,7 +55,7 @@ abstract class ThrottleService
      *
      * @return array
      */
-    protected function messages()
+    public function messages()
     {
         return [];
     }
@@ -73,18 +72,17 @@ abstract class ThrottleService
         // 1, 60
         list($limit, $interval) = explode(':', $rule);
 
-        return $this->getBuilder($interval)->count() < $limit ? true : false;
+        return $this->builder($interval)->count() < $limit ? true : false;
     }
 
     /**
      * @param integer $interval seconds
      * @return \Illuminate\Database\Eloquent\Builder|\Illuminate\Database\Query\Builder
      */
-    protected function getBuilder($interval)
+    public function builder($interval)
     {
-        return Throttle::query()
-                ->where('action', $this->action)
-                ->whereDate('created_at', '>=', Carbon::parse("-{$interval} seconds"));
+        return Throttle::after(Carbon::parse("-{$interval} seconds"))
+            ->where('action', $this->action);
     }
 
     protected function getMessage($rule)
@@ -144,7 +142,7 @@ abstract class ThrottleService
             list($hits, $interval) = explode(':', $this->lastRule);
 
             /** @var Throttle $first */
-            $first = $this->getBuilder($interval)->orderBy('created_at')->first();
+            $first = $this->builder($interval)->orderBy('created_at')->first();
 
             // eg
             // rule has interval 300 seconds

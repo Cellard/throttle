@@ -1,7 +1,7 @@
 <?php
 
 
-namespace Cellard\Throttle;
+namespace Cellard\Throttle\Exceptions;
 
 
 use Illuminate\Support\Carbon;

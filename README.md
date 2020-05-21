@@ -56,8 +56,10 @@ $throttle = Throttle::event('sms')->subject('+70001234567');
 
 if ($throttle->allow()) {
 
-    // Send sms
+    // Your code to send SMS here
 
+
+    // Do not forget to register an event
     $throttle->hit();
 
 } else {
@@ -76,18 +78,18 @@ Or in try-catch style
 ```php
 try {
 
-    Throttle::event('ip')
-        ->subject($_SERVER['REMOTE_ADDR'])
+    Throttle::event('sms')
+        ->subject('+70001234567')
         ->try();
 
-    // handle the request from user
+    // Your code to send SMS here
 
 } catch (\Cellard\Throttle\ThrottlingException $exception) {
 
     // Show error message
     $exception->getMessage();
 
-    // Show the time, next request is allowed
+    // Show the time, next sms is allowed
     $exception->getNext();
 }
 ```
@@ -100,11 +102,20 @@ You may check availability without subject.
 Throttle::event('sms')->try();
 ```
 
-It means that your service has global limitations without reference to the exact phone number.
+It means that service will check limitations without reference to the exact phone number.
 
-Subject means, that your service has limitations per phone.
+Subject means that service will check limitations per phone.
 
 ```php
 Throttle::event('sms')->subject('+70001234567')->try();
 ```
 
+## Pick up your room before you go out
+
+Throttle Service stores records in its table, and you may want to clear it.
+
+    php artisan throttle:clean
+
+Will remove obsolete records.
+
+You may schedule it to run once a day or week...
