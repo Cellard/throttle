@@ -55,6 +55,7 @@ class ThrottleSms extends Cellard\Throttle\ThrottleService
         return [
             '1:60', // one sms per minute
             '3:300', // 3 sms per 5 minutes
+            '5:86400', // maximum 5 sms every day
         ];
     }
 }
@@ -69,7 +70,8 @@ class ThrottleSms extends Cellard\Throttle\ThrottleService
     {
         return [
             $this->everyMinute(),
-            $this->everyFiveMinutes(3)
+            $this->everyFiveMinutes(3),
+            $this->daily(5)
         ];
     }
 }

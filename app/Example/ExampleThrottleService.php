@@ -13,6 +13,7 @@ class ExampleThrottleService extends ThrottleService
         return [
             $this->everyMinute() => 'Only one example per minute is allowed',
             $this->everyFiveMinutes(3) => 'No more than three examples in five minutes are allowed',
+            $this->daily(5)
         ];
     }
 }
