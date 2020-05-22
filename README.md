@@ -1,6 +1,24 @@
 # Laravel Throttle Service
 
-May throttle any event you need. E.g. sending sms or requests from exact IP address.
+Laravel built-in throttling allows to rate limit access to routes. But what about other processes, e.g. sending sms? 
+
+For example, you may need to limit amount of sms, user allowed to receive from your service.
+Or maybe you need to limit number of comments, user allowed to write in some time period.   
+
+This service can throttle any event you need:
+
+```php
+try {
+    Throttle::event('sms')
+        ->subject('+70001234567')
+        ->try();
+
+    // Your code to send SMS here
+
+} catch (\Cellard\Throttle\ThrottlingException $exception) {
+    // No, You Don't
+}
+```
 
 ## Installation
 
@@ -38,8 +56,17 @@ class ThrottleSms extends Cellard\Throttle\ThrottleService
             '1:60', // one sms per minute
             '3:300', // 3 sms per 5 minutes
         ];
+    }
+}
+```
 
-        // Or you may use helper
+Exactly the same, but with helpers.
+
+```php
+class ThrottleSms extends Cellard\Throttle\ThrottleService
+{
+    public function rules()
+    {
         return [
             $this->everyMinute(),
             $this->everyFiveMinutes(3)
@@ -48,7 +75,7 @@ class ThrottleSms extends Cellard\Throttle\ThrottleService
 }
 ```
 
-Register your service in `config/throttle.php`.
+Then register your service in `config/throttle.php`.
 
 ```php
 return [
@@ -84,7 +111,7 @@ Placeholders:
 - limit — number of events (defined in rule)
 - seconds — number of seconds (defined in rule)
 - event — name of service (defined in config file)
-- interval - `CarbonInterval` object
+- interval - `CarbonInterval` object (time left to the next allowed hit)
 
 ## Usage
 
@@ -132,6 +159,8 @@ try {
 ```
 
 ## What is `subject`?
+
+`Subject` is a scope.
 
 You may check availability without subject.
 

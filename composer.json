@@ -1,7 +1,8 @@
 {
   "name": "cellard/throttle",
-  "version": "1.0.0",
-  "description": "Laravel Throttle Service",
+  "version": "1.0.1",
+  "description": "Laravel Throttle Service may throttle any events, not only requests",
+  "keywords": ["throttle", "laravel", "sms", "limitation"],
   "type": "library",
   "authors": [
     {
