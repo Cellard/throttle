@@ -9,7 +9,7 @@ This service can throttle any event you need:
 
 ```php
 try {
-    Throttle::event('sms')
+    throttle('sms')
         ->subject('+70001234567')
         ->try();
 
