@@ -160,6 +160,14 @@ try {
 }
 ```
 
+Also you may use helper function.
+
+```php
+throttle('sms')
+    ->subject('+70001234567')
+    ->try();
+```
+
 ## What is `subject`?
 
 `Subject` is a scope.

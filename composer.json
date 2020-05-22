@@ -1,6 +1,6 @@
 {
   "name": "cellard/throttle",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Laravel Throttle Service may throttle any events, not only requests",
   "keywords": ["throttle", "laravel", "sms", "limitation"],
   "type": "library",
@@ -15,6 +15,9 @@
     "php": ">=7.0"
   },
   "autoload": {
+    "files": [
+      "app/helpers.php"
+    ],
     "psr-4": {
       "Cellard\\Throttle\\": "app"
     }
