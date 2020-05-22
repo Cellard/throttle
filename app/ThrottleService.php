@@ -5,9 +5,12 @@ namespace Cellard\Throttle;
 
 use Cellard\Throttle\Exceptions\ThrottlingException;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 
 abstract class ThrottleService
 {
+    use ManagesFrequencies;
+
     /**
      * Value to filter records in database
      * @var string
@@ -16,7 +19,11 @@ abstract class ThrottleService
     protected $driver;
     protected $subject;
 
-    protected $lastRule;
+    /**
+     * Last checked rule
+     * @var ThrottleRule
+     */
+    protected $rule;
 
     public function __construct($driver)
     {
@@ -49,30 +56,14 @@ abstract class ThrottleService
     abstract public function rules();
 
     /**
-     * Custom error messages
-     *
-     * ['1:60' => 'You may send just one sms per minute']
-     *
-     * @return array
-     */
-    public function messages()
-    {
-        return [];
-    }
-
-    /**
      * Check one rule
-     * @param $rule
+     * @param ThrottleRule $rule
      * @return bool
      */
-    protected function checkRule($rule)
+    protected function check($rule)
     {
-        $this->lastRule = $rule;
-
-        // 1, 60
-        list($limit, $interval) = explode(':', $rule);
-
-        return $this->builder($interval)->count() < $limit ? true : false;
+        $this->rule = $rule;
+        return $this->builder($rule->seconds)->count() < $rule->limit ? true : false;
     }
 
     /**
@@ -82,20 +73,7 @@ abstract class ThrottleService
     public function builder($interval)
     {
         return Throttle::after(Carbon::parse("-{$interval} seconds"))
-            ->where('action', $this->action);
-    }
-
-    protected function getMessage($rule)
-    {
-        $messages = $this->messages();
-
-        if (!($message = @$messages[$rule])) {
-            list($hits, $interval) = explode(':', $rule);
-
-            $message = trans("Only allowed :hits event(s) in :interval seconds", ['hits' => $hits, 'interval' => $interval]);
-        }
-
-        return $message;
+            ->where('action', 'like', $this->action);
     }
 
     /**
@@ -104,8 +82,8 @@ abstract class ThrottleService
      */
     public function allow()
     {
-        foreach ($this->rules() as $rule) {
-            if (!$this->checkRule($rule)) {
+        foreach ($this->getRules() as $rule) {
+            if (!$this->check($rule)) {
                 return false;
             }
         }
@@ -114,12 +92,44 @@ abstract class ThrottleService
     }
 
     /**
+     * @return Collection|ThrottleRule[]
+     */
+    public function getRules()
+    {
+        $rules = new Collection();
+        foreach ($this->rules() as $rule => $message) {
+
+            if (!is_string($rule)) {
+                $rule = $message;
+                $message = "Next :event after :interval";
+            }
+            list($limit, $seconds) = explode(':', $rule);
+
+            $rules->push(new ThrottleRule($limit, $seconds, $message));
+        }
+
+        // Bigger intervals on top
+        return $rules->sort(function (ThrottleRule $one, ThrottleRule $two) {
+            return -($one->seconds - $two->seconds);
+        });
+    }
+
+    /**
      * Get last error message
-     * @return \Illuminate\Contracts\Translation\Translator|string
+     * @return \Illuminate\Contracts\Translation\Translator|string|null
      */
     public function error()
     {
-        return $this->getMessage($this->lastRule);
+        if ($rule = $this->rule) {
+            return trans($rule->message, [
+                'limit' => $rule->limit,
+                'interval' => $this->next()->diffAsCarbonInterval(),
+                'event' => $this->driver,
+                'seconds' => $rule->seconds
+            ]);
+        }
+
+        return null;
     }
 
     /**
@@ -138,18 +148,18 @@ abstract class ThrottleService
      */
     public function next()
     {
-        if ($this->lastRule) {
-            list($hits, $interval) = explode(':', $this->lastRule);
+        if ($rule = $this->rule) {
 
             /** @var Throttle $first */
-            $first = $this->builder($interval)->orderBy('created_at')->first();
+            $first = $this->builder($rule->seconds)->orderBy('created_at')->first();
 
             // eg
             // rule has interval 300 seconds
             // event was 240 seconds ago
             // so next run allowed in 60 seconds
 
-            $diff = $interval - Carbon::now()->diffAsCarbonInterval($first->created_at)->seconds;
+            $ago = Carbon::now()->diffAsCarbonInterval($first->created_at)->totalSeconds;
+            $diff = (integer)round($rule->seconds - $ago);
 
             return Carbon::parse("{$diff} seconds");
         } else {

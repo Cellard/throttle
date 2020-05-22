@@ -11,8 +11,18 @@ class ThrottleServiceProvider extends ServiceProvider
     public function boot()
     {
         $this->publishes([
+            __DIR__ . '/../config/throttle.php' => config_path('throttle.php')
+        ], 'throttle-config');
+
+        $this->publishes([
             __DIR__ . '/../database/migrations/' => base_path('/database/migrations')
         ], 'throttle-migrations');
+
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                Console\Commands\CleanThrottleTable::class,
+            ]);
+        }
     }
 
     /**

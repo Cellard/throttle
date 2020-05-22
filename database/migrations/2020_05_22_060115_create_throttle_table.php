@@ -1,7 +1,8 @@
 <?php
 
-use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
 
 class CreateThrottleTable extends Migration
 {
@@ -13,7 +14,7 @@ class CreateThrottleTable extends Migration
     public function up()
     {
         Schema::create('throttle', function (Blueprint $table) {
-            $table->string('id')->primary();
+            $table->bigIncrements('id');
             $table->string('action', 255);
             $table->timestamps();
         });
@@ -26,6 +27,6 @@ class CreateThrottleTable extends Migration
      */
     public function down()
     {
-        Schema::drop('throttle');
+        Schema::dropIfExists('throttle');
     }
 }

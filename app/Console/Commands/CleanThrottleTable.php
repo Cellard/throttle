@@ -2,9 +2,10 @@
 
 namespace Cellard\Throttle\Console\Commands;
 
-use Carbon\Carbon;
 use Cellard\Throttle\Throttle;
+use Cellard\Throttle\ThrottleRule;
 use Illuminate\Console\Command;
+use Illuminate\Support\Carbon;
 
 class CleanThrottleTable extends Command
 {
@@ -29,17 +30,17 @@ class CleanThrottleTable extends Command
      */
     public function handle()
     {
-        foreach (config("throttle.events") as $event) {
+        foreach (config("throttle.events") as $event => $class) {
             $throttler = Throttle::event($event);
-            $interval = 0;
-            foreach ($throttler->rules() as $rule) {
-                list($limit, $int) = explode(':', $rule);
-                $interval = max($interval, $int);
-            }
 
-            Throttle::before(Carbon::parse("-{$interval} seconds"))
+            /** @var ThrottleRule $rule */
+            $rule = $throttler->getRules()->first();
+
+            Throttle::before(Carbon::parse("-{$rule->seconds} seconds"))
                 ->where('action', $event)
                 ->delete();
+
+            $this->info($event . '... clean');
         }
     }
 }

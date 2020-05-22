@@ -19,7 +19,6 @@ use Illuminate\Support\Carbon;
  */
 class Throttle extends Model
 {
-
     protected $table = 'throttle';
     /**
      * Get Throttle Service instance
@@ -29,17 +28,17 @@ class Throttle extends Model
     public static function event($driver)
     {
         $service = config("throttle.events.{$driver}");
-        return new $service();
+        return new $service($driver);
     }
 
     public function scopeAfter(Builder $query, Carbon $datetime)
     {
         $query
-            ->whereDate('created_at', '>=', $datetime);
+            ->where('created_at', '>=', $datetime);
     }
     public function scopeBefore(Builder $query, Carbon $datetime)
     {
         $query
-            ->whereDate('created_at', '<', $datetime);
+            ->where('created_at', '<', $datetime);
     }
 }
